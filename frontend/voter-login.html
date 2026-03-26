@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Voter Login</title>
+</head>
+<body class="login-body">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <img src="mfu-logo.png" alt="MFU Logo" class="mfu-logo" style="height: 70px;">
+                <h2 style="color: var(--text-main); margin: 0;">Voter Authentication</h2>
+            </div>
+            
+            <label>Citizen ID</label>
+            <input type="text" id="v-cid" placeholder="Enter 13-digit ID">
+            
+            <label>Laser ID</label>
+            <input type="password" id="v-laser" placeholder="Enter Back-of-Card ID">
+            
+            <button onclick="Auth.loginVoter(document.getElementById('v-cid').value, document.getElementById('v-laser').value)" style="padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem;">Secure Login</button>
+            
+            <p style="text-align: center; margin-top: 1.5rem;"><a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">← Back to Home</a></p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

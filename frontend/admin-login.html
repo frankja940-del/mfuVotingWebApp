@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Admin Login</title>
+</head>
+
+<body class="login-body">
+    <div class="auth-wrapper">
+        <div class="auth-card" style="border-top-color: var(--red-important);">
+            <div class="auth-header">
+                <img src="mfu-logo.png" alt="MFU Logo" class="mfu-logo" style="height: 70px;">
+                <h2 style="color: var(--red-important); margin: 0;">System Administrator</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Restricted access area.</p>
+            </div>
+
+            <label for="admin-user">Admin Username</label>
+            <input type="text" id="admin-user" placeholder="Username" required>
+            
+            <label for="c-log-pw">Password</label>
+            <input type="password" id="c-log-pw" placeholder="Enter Password" required>
+
+            <button id="login-btn" style="padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem; cursor: pointer;">
+                Secure Login
+            </button>
+
+            <p style="text-align: center; margin-top: 1.5rem;">
+                <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">← Back to Home</a>
+            </p>
+            <p style="text-align: center; font-size: 0.8rem;">
+                Don't have an account? <a href="admin-register.html" style="color: var(--red-important);">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+
+        loginBtn.addEventListener('click', async () => {
+            const username = document.getElementById('admin-user').value;
+            const password = document.getElementById('c-log-pw').value;
+
+            if (!username || !password) {
+                alert('please fill in both fields');
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('adminUser', data.admin.username);
+
+                    alert('Login successful! Welcome ' + data.admin.username);
+                    
+                   
+                    window.location.href = 'admin-main.html'; 
+                } else {
+                    
+                    alert('Login failed: ' + data.message);
+                }
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                alert('Cannot connect to the server');
+            }
+        });
+
+        document.getElementById('c-log-pw').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
+        });
+    </script>
+</body>
+
+</html>

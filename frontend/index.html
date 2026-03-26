@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>MFU Election Portal</title>
+</head>
+<body class="login-body">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <img src="mfu-logo.png" alt="MFU Logo" class="mfu-logo">
+                <h1 style="color: var(--navy-primary); margin: 0;">MFU Election Voting</h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Select your preferred role.</p>
+            </div>
+            
+            <button class="portal-btn" onclick="window.location.href='voter-login.html'">Voter</button>
+            <button class="portal-btn" onclick="window.location.href='candidate-login.html'" style="background: var(--text-main);">Candidate</button>
+            <button class="portal-btn btn-danger" onclick="window.location.href='admin-login.html'">Admin
+            
+            </button>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

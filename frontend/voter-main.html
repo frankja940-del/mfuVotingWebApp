@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Voter Dashboard</title>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">MFU E-Voting</div>
+        <div class="nav-links"><button onclick="Auth.logout()">Sign Out</button></div>
+    </nav>
+    <div class="container">
+        <div class="card" style="background: #ECFDF5; border-left: 5px solid var(--success); padding: 1rem; display: flex; justify-content: space-between;">
+            <p style="margin: 0; color: #065F46; font-weight: 600;">✓ Your Status: Authenticated</p>
+            <p id="voter-status-id" style="margin: 0; font-size: 0.85rem; color: var(--text-muted);"></p>
+        </div>
+
+        <div class="stats-grid" style="margin-top: 1.5rem;">
+            <div class="stat-card"><p>Registered Voters</p><h3 id="v-stat-voters">0</h3></div>
+            <div class="stat-card"><p>Active Candidates</p><h3 id="v-stat-cands">0</h3></div>
+            <div class="stat-card"><p>Votes Cast</p><h3 id="v-stat-votes" style="color: var(--success);">0</h3></div>
+            <div class="stat-card"><p>Turnout Rate</p><h3 id="v-stat-percent" style="color: var(--navy-primary);">0%</h3></div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('voting')">Dashboard & Voting</button>
+            <button class="tab-btn" onclick="switchTab('results')">Live Results & Search</button>
+        </div>
+
+        <div id="tab-voting" class="tab-content active">
+            <div id="voting-booth-status" style="margin-bottom: 2rem;"></div>
+            
+            <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.75rem;">Official Candidate Ballot</h2>
+            <div id="candidate-directory" class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));"></div>
+        </div>
+
+        <div id="tab-results" class="tab-content">
+            <div class="card">
+                <h2>Live Election Standings</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Search for a candidate to see their current verified votes.</p>
+                <input type="text" placeholder="Search candidate by name..." onkeyup="VoterService.renderResults(this.value)" style="margin-bottom: 1rem;">
+                <table id="voter-result-table">
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="vote-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--navy-primary); margin-bottom: 0.5rem;">Confirm Your Vote</h3>
+            <p>Are you sure you want to cast your official vote for <strong id="modal-cand-name" style="font-size: 1.1rem;"></strong>?</p>
+            <p style="font-size: 0.85rem; color: var(--red-important); font-weight: 600;">This action is final and cannot be undone.</p>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button onclick="confirmVote()" style="background: var(--success);">Yes, Cast Vote</button>
+                <button onclick="closeModal()" style="background: #E5E7EB; color: var(--text-main);">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

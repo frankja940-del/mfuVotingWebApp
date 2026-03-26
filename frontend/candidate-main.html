@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Candidate Portal</title>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">MFU E-Voting <span style="font-weight: 400; opacity: 0.8;">| Candidate</span></div>
+        <div class="nav-links"><button onclick="Auth.logout()">Sign Out</button></div>
+    </nav>
+    <div class="container">
+        
+        <div class="card" style="background: #EFF6FF; border-left: 5px solid var(--navy-primary); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; color: var(--navy-primary); font-weight: 600; font-size: 0.85rem;">✓ Authenticated</p>
+                <h2 id="cand-welcome" style="margin: 0.25rem 0 0 0; font-size: 1.5rem;">Welcome</h2>
+            </div>
+            <div style="text-align: right; background: white; padding: 0.75rem 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Verified Votes</p>
+                <h3 id="cand-score" style="margin: 0; color: var(--success); font-size: 1.75rem;">0</h3>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchCandTab('profile')">My Profile & Settings</button>
+            <button class="tab-btn" onclick="switchCandTab('results')">Live Results & Search</button>
+        </div>
+
+        <div id="tab-profile" class="tab-content active">
+            <div class="grid-2" style="align-items: start;">
+                
+                <div class="card" style="border-top: 3px solid var(--navy-primary); margin-bottom: 0; display: flex; flex-direction: column; height: 450px;">
+                    <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Update Campaign Info</h2>
+                    
+                    <label>Display Name</label>
+                    <input type="text" id="up-name" placeholder="Enter your full name">
+                    
+                    <label>Campaign Policy</label>
+                    <textarea id="up-policy" placeholder="Detail your campaign promises and goals..." style="flex-grow: 1; resize: none; margin-bottom: 1rem;"></textarea>
+                    
+                    <button id="save-profile-btn" style="margin-top: auto;">Publish Changes</button>
+                </div>
+
+                <div class="card" style="border-top: 3px solid var(--mfu-gold); margin-bottom: 0; display: flex; flex-direction: column; height: 450px;">
+                    <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Public Profile Preview</h2>
+                    
+                    <div id="cand-profile-preview" style="flex-grow: 1; overflow-y: auto; padding-right: 0.5rem;">
+                        </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="tab-results" class="tab-content">
+            <div class="card">
+                <h2>Live Election Standings</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Search for a candidate to see their current verified votes.</p>
+                <input type="text" placeholder="Search candidate by name..." onkeyup="CandidateService.renderResults(this.value)" style="margin-bottom: 1rem;">
+                <table id="cand-result-table">
+                </table>
+            </div>
+        </div>
+
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

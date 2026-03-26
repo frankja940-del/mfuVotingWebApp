@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Admin Console | MFU E-Voting</title>
+</head>
+
+<body>
+    <nav class="navbar" style="border-bottom: 4px solid var(--red-important);">
+        <div class="brand">MFU Admin Console</div>
+        <div class="nav-links"><button onclick="Auth.logout()">End Secure Session</button></div>
+    </nav>
+    <div class="container">
+
+        <div class="stats-grid" style="margin-top: 1rem;">
+            <div class="stat-card">
+                <p>Registered Voters</p>
+                <h3 id="stat-voters">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Active Candidates</p>
+                <h3 id="stat-cands">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Votes Cast</p>
+                <h3 id="stat-votes" style="color: var(--success);">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Turnout Rate</p>
+                <h3 id="stat-percent" style="color: var(--navy-primary);">0%</h3>
+            </div>
+        </div>
+
+        <div class="tabs" style="margin-top: 2rem;">
+            <button class="tab-btn active" onclick="switchAdminTab('system')">System & Registration</button>
+            <button class="tab-btn" onclick="switchAdminTab('voters')">Voter Access Control</button>
+            <button class="tab-btn" onclick="switchAdminTab('candidates')">Candidate Access Control</button>
+            <button class="tab-btn" onclick="switchAdminTab('directory')">Candidate Directory</button> <button
+                class="tab-btn" onclick="switchAdminTab('results')">Live Results</button>
+        </div>
+
+        <div id="tab-system" class="tab-content active">
+            <div id="system-toggle-card" class="card" style="margin-bottom: 1.5rem; transition: 0.3s;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 id="system-status-title" style="margin-bottom: 0.25rem;">Global Voting: <span
+                                id="system-status-text"></span></h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Locks the ballot globally so
+                            no one can cast a vote.</p>
+                    </div>
+                    <button id="system-toggle-btn" style="width: auto;"
+                        onclick="AdminService.toggleSystem()">Toggle</button>
+                </div>
+            </div>
+
+            <div class="grid-2" style="align-items: stretch; margin-bottom: 1.5rem;">
+                <div class="card" style="border-top: 3px solid var(--mfu-gold); margin-bottom: 0;">
+                    <h2 style="margin-bottom: 1rem;">+ Register New Voter</h2>
+                    <label>Citizen / Student ID</label>
+                    <input type="text" id="new-voter-cid" placeholder="10 or 13-Digit ID">
+                    <label>Laser ID</label>
+                    <input type="text" id="new-voter-laser" placeholder="Back-of-Card ID">
+                    <button style="background: var(--mfu-gold); color: var(--text-main);"
+                        onclick="AdminService.addVoter(document.getElementById('new-voter-cid').value, document.getElementById('new-voter-laser').value)">Authorize
+                        Voter</button>
+                </div>
+
+                <div class="card" style="border-top: 3px solid var(--navy-primary); margin-bottom: 0;">
+                    <h2 style="margin-bottom: 1rem;">+ Register New Candidate</h2>
+                    <label>Assign Candidate ID</label>
+                    <input type="text" id="new-cand-id" placeholder="e.g., 01">
+
+                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+                        Recently Registered Candidate ID: <strong id="last-cand-id"
+                            style="color: var(--navy-primary);">Loading...</strong>
+                    </p>
+                    <button onclick="AdminService.addCandidate(document.getElementById('new-cand-id').value)"
+                        style="margin-top: 5.25rem;">Create Candidate Placeholder</button>
+                </div>
+            </div>
+
+            <div class="card" style="border-top: 4px solid var(--red-important); background: #FEF2F2;">
+                <h2 style="color: var(--red-important);">Emergency Actions (Danger Zone)</h2>
+                <div class="stats-grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 0;">
+                    <div
+                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
+                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Reset All Votes</h3>
+                        <button class="btn-danger" onclick="initiateEmergency('reset-votes')">Reset Votes</button>
+                    </div>
+                    <div
+                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
+                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Clear All Users</h3>
+                        <button class="btn-danger" onclick="initiateEmergency('clear-users')">Clear Users</button>
+                    </div>
+                    <div
+                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
+                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Factory Reset</h3>
+                        <button class="btn-danger" onclick="initiateEmergency('factory-reset')"
+                            style="background: #991B1B;">Total Factory Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-voters" class="tab-content">
+            <div class="card">
+                <h2>Voter Access Control</h2>
+                <input type="text" id="search-voter" placeholder="Search Voter ID..."
+                    onkeyup="AdminService.renderVoterTable()" style="margin-bottom: 1rem;">
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table id="admin-user-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-candidates" class="tab-content">
+            <div class="card">
+                <h2>Candidate Access Control</h2>
+                <input type="text" id="search-cand" placeholder="Search Candidate Name or ID..."
+                    onkeyup="AdminService.renderCandidateTable()" style="margin-bottom: 1rem;">
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table id="admin-cand-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-directory" class="tab-content">
+            <div class="card">
+                <h2>Candidate Directory & Policies</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">View full candidate
+                    profiles and their registered policies.</p>
+                <div id="admin-candidate-directory" class="stats-grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));"></div>
+            </div>
+        </div>
+
+        <div id="tab-results" class="tab-content">
+            <div class="card">
+                <h2>Search Live Standings</h2>
+                <input type="text" id="search-results" placeholder="Search candidate by name..."
+                    onkeyup="AdminService.renderResults()" style="margin-bottom: 1rem;">
+                <table id="admin-result-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="emergency-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--red-important);">CRITICAL ACTION</h3>
+            <p id="emergency-desc"></p>
+            <div id="emergency-step-1">
+                <button onclick="emergencyStep2()" class="btn-danger">Yes, Proceed</button>
+                <button onclick="closeEmergency()">Cancel</button>
+            </div>
+            <div id="emergency-step-2" style="display: none;">
+                <button onclick="executeEmergency()" style="background: #991B1B;">Confirm Execute</button>
+                <button onclick="closeEmergency()">Abort</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('http://localhost:3000/admin/stats');
+                const data = await response.json();
+
+                document.getElementById('stat-voters').innerText = data.voters;
+                document.getElementById('stat-cands').innerText = data.candidates;
+                document.getElementById('stat-votes').innerText = data.votes;
+                document.getElementById('stat-percent').innerText = (data.turnout) + "%";
+            } catch (err) {
+                console.error("Failed to load dashboard data:", err);
+            }
+        }
+
+        window.onload = loadDashboardData;
+
+
+        const AdminService = {
+
+            async addVoter(cid, laser) {
+                if (!cid || !laser) return alert("Please fill in both IDs");
+
+                try {
+                    const response = await fetch('http://localhost:3000/admin/add-voter', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ citizen_id: cid, laser_id: laser })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(data.message);
+                        loadDashboardData();
+                        document.getElementById('new-voter-cid').value = '';
+                        document.getElementById('new-voter-laser').value = '';
+                    } else {
+                        alert("Error: " + data.message);
+                    }
+                } catch (err) {
+                    console.error("Register failed:", err);
+                }
+            },
+
+            async addCandidate(candidate_id) {
+                if (!candidate_id) return alert("Please enter a candidate ID (e.g., CAND-01)");
+
+                try {
+                    const response = await fetch('http://localhost:3000/admin/add-candidate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: name })
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(data.message);
+                        loadDashboardData();
+                        document.getElementById('new-cand-id').value = '';
+                    }
+                } catch (err) {
+                    console.error("Candidate creation failed:", err);
+                }
+            }
+        };
+
+    </script>
+</body>
+
+</html>
