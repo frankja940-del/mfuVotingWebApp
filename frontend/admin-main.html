@@ -5,16 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Admin Console | MFU E-Voting</title>
 </head>
 
 <body>
     <nav class="navbar" style="border-bottom: 4px solid var(--red-important);">
         <div class="brand">MFU Admin Console</div>
-        <div class="nav-links"><button onclick="Auth.logout()">End Secure Session</button></div>
+        <div class="nav-links"><button onclick="location.replace('admin-login.html'),localStorage.clear(),sessionStorage.clear()">End Secure Session</button></div>
     </nav>
-    <div class="container">
 
+    <div class="container">
         <div class="stats-grid" style="margin-top: 1rem;">
             <div class="stat-card">
                 <p>Registered Voters</p>
@@ -38,16 +39,16 @@
             <button class="tab-btn active" onclick="switchAdminTab('system')">System & Registration</button>
             <button class="tab-btn" onclick="switchAdminTab('voters')">Voter Access Control</button>
             <button class="tab-btn" onclick="switchAdminTab('candidates')">Candidate Access Control</button>
-            <button class="tab-btn" onclick="switchAdminTab('directory')">Candidate Directory</button> <button
-                class="tab-btn" onclick="switchAdminTab('results')">Live Results</button>
+            <button class="tab-btn" onclick="switchAdminTab('results')">Live Results</button>
         </div>
 
         <div id="tab-system" class="tab-content active">
-            <div id="system-toggle-card" class="card" style="margin-bottom: 1.5rem; transition: 0.3s;">
+            <div id="system-toggle-card" class="card"
+                style="margin-bottom: 1.5rem; transition: 0.3s; border-left: 8px solid #ccc;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h2 id="system-status-title" style="margin-bottom: 0.25rem;">Global Voting: <span
-                                id="system-status-text"></span></h2>
+                        <h2 style="margin-bottom: 0.25rem;">Global Voting: <span
+                                id="system-status-text">LOADING...</span></h2>
                         <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Locks the ballot globally so
                             no one can cast a vote.</p>
                     </div>
@@ -56,179 +57,402 @@
                 </div>
             </div>
 
-            <div class="grid-2" style="align-items: stretch; margin-bottom: 1.5rem;">
-                <div class="card" style="border-top: 3px solid var(--mfu-gold); margin-bottom: 0;">
-                    <h2 style="margin-bottom: 1rem;">+ Register New Voter</h2>
+            <div class="grid-2">
+                <div class="card" style="border-top: 3px solid var(--mfu-gold);">
+                    <h2>+ Register New Voter</h2>
                     <label>Citizen / Student ID</label>
-                    <input type="text" id="new-voter-cid" placeholder="10 or 13-Digit ID">
+                    <input type="text" id="new-voter-cid" placeholder="13-Digit ID">
                     <label>Laser ID</label>
                     <input type="text" id="new-voter-laser" placeholder="Back-of-Card ID">
-                    <button style="background: var(--mfu-gold); color: var(--text-main);"
-                        onclick="AdminService.addVoter(document.getElementById('new-voter-cid').value, document.getElementById('new-voter-laser').value)">Authorize
+                    <button style="background: var(--mfu-gold); color: #000;" onclick="handleVoterReg()">Authorize
                         Voter</button>
                 </div>
 
-                <div class="card" style="border-top: 3px solid var(--navy-primary); margin-bottom: 0;">
-                    <h2 style="margin-bottom: 1rem;">+ Register New Candidate</h2>
+                <div class="card" style="border-top: 3px solid var(--navy-primary);">
+                    <h2>+ Register Candidate</h2>
                     <label>Assign Candidate ID</label>
                     <input type="text" id="new-cand-id" placeholder="e.g., 01">
-
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
-                        Recently Registered Candidate ID: <strong id="last-cand-id"
-                            style="color: var(--navy-primary);">Loading...</strong>
-                    </p>
-                    <button onclick="AdminService.addCandidate(document.getElementById('new-cand-id').value)"
-                        style="margin-top: 5.25rem;">Create Candidate Placeholder</button>
+                    <p>Recently Registered ID: <strong id="last-cand-id"
+                            style="color: var(--navy-primary);">...</strong></p>
+                    <button onclick="handleCandReg()" style="margin-top: 2rem;">Create Placeholder</button>
                 </div>
             </div>
 
-            <div class="card" style="border-top: 4px solid var(--red-important); background: #FEF2F2;">
-                <h2 style="color: var(--red-important);">Emergency Actions (Danger Zone)</h2>
-                <div class="stats-grid"
-                    style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 0;">
-                    <div
-                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
-                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Reset All Votes</h3>
-                        <button class="btn-danger" onclick="initiateEmergency('reset-votes')">Reset Votes</button>
-                    </div>
-                    <div
-                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
-                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Clear All Users</h3>
-                        <button class="btn-danger" onclick="initiateEmergency('clear-users')">Clear Users</button>
-                    </div>
-                    <div
-                        style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--red-important);">
-                        <h3 style="font-size: 1.1rem; color: var(--navy-primary);">Factory Reset</h3>
-                        <button class="btn-danger" onclick="initiateEmergency('factory-reset')"
-                            style="background: #991B1B;">Total Factory Reset</button>
-                    </div>
+            <div class="card"
+                style="border-top: 4px solid var(--red-important); background: #FEF2F2; margin-top: 1.5rem;">
+                <h2 style="color: var(--red-important);">Emergency Actions</h2>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <button class="btn-danger" onclick="initiateEmergency('reset-votes')">Reset All Votes</button>
+                    <button class="btn-danger" onclick="initiateEmergency('clear-voters')">Clear All Voters</button>
+                    <button class="btn-danger" onclick="initiateEmergency('clear-candidates')">Clear All
+                        Candidates</button>
+                    <button class="btn-danger" onclick="initiateEmergency('factory-reset')">Factory Reset</button>
                 </div>
-            </div>
-        </div>
-
-        <div id="tab-voters" class="tab-content">
-            <div class="card">
-                <h2>Voter Access Control</h2>
-                <input type="text" id="search-voter" placeholder="Search Voter ID..."
-                    onkeyup="AdminService.renderVoterTable()" style="margin-bottom: 1rem;">
-                <div style="max-height: 500px; overflow-y: auto;">
-                    <table id="admin-user-table"></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-candidates" class="tab-content">
-            <div class="card">
-                <h2>Candidate Access Control</h2>
-                <input type="text" id="search-cand" placeholder="Search Candidate Name or ID..."
-                    onkeyup="AdminService.renderCandidateTable()" style="margin-bottom: 1rem;">
-                <div style="max-height: 500px; overflow-y: auto;">
-                    <table id="admin-cand-table"></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-directory" class="tab-content">
-            <div class="card">
-                <h2>Candidate Directory & Policies</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">View full candidate
-                    profiles and their registered policies.</p>
-                <div id="admin-candidate-directory" class="stats-grid"
-                    style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));"></div>
-            </div>
-        </div>
-
-        <div id="tab-results" class="tab-content">
-            <div class="card">
-                <h2>Search Live Standings</h2>
-                <input type="text" id="search-results" placeholder="Search candidate by name..."
-                    onkeyup="AdminService.renderResults()" style="margin-bottom: 1rem;">
-                <table id="admin-result-table"></table>
             </div>
         </div>
     </div>
 
-    <div id="emergency-modal" class="modal">
-        <div class="modal-content">
+    <div id="tab-voters" class="tab-content">
+        <div class="card">
+            <h2>Voter Access Control</h2>
+            <input type="text" id="search-voter" placeholder="Search Citizen ID..."
+                oninput="AdminService.renderVoterTable()">
+            <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
+                <table id="admin-user-table" class="admin-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-candidates" class="tab-content">
+        <div class="card">
+            <h2>Candidate Access Control</h2>
+            <input type="text" id="search-cand" placeholder="Search Candidate..."
+                onkeyup="AdminService.renderCandidateTable()">
+            <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
+                <table id="admin-cand-table" class="admin-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-results" class="tab-content">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Live Election Results</h2>
+                <button onclick="AdminService.fetchLiveResults()"
+                    style="width: auto; background: var(--navy-primary);">Refresh Data</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="resultsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div id="emergency-modal" class="modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;">
+        <div class="modal-content"
+            style="background:white; padding:2rem; border-radius:10px; max-width:400px; text-align:center;">
             <h3 style="color: var(--red-important);">CRITICAL ACTION</h3>
-            <p id="emergency-desc"></p>
+            <p id="emergency-desc" style="margin: 1rem 0;"></p>
             <div id="emergency-step-1">
-                <button onclick="emergencyStep2()" class="btn-danger">Yes, Proceed</button>
+                <button onclick="emergencyStep2()" style="background:red; color:white;">Yes, Proceed</button>
                 <button onclick="closeEmergency()">Cancel</button>
             </div>
             <div id="emergency-step-2" style="display: none;">
-                <button onclick="executeEmergency()" style="background: #991B1B;">Confirm Execute</button>
+                <p><strong>Are you absolutely sure?</strong></p>
+                <button onclick="executeEmergency()" style="background: #991B1B; color:white;">Confirm Execute</button>
                 <button onclick="closeEmergency()">Abort</button>
             </div>
         </div>
     </div>
 
     <script>
-        async function loadDashboardData() {
-            try {
-                const response = await fetch('http://localhost:3000/admin/stats');
-                const data = await response.json();
-
-                document.getElementById('stat-voters').innerText = data.voters;
-                document.getElementById('stat-cands').innerText = data.candidates;
-                document.getElementById('stat-votes').innerText = data.votes;
-                document.getElementById('stat-percent').innerText = (data.turnout) + "%";
-            } catch (err) {
-                console.error("Failed to load dashboard data:", err);
-            }
-        }
-
-        window.onload = loadDashboardData;
-
+        let myChart = null;
 
         const AdminService = {
+            allVoters: [],
+            allCandidates: [],
 
-            async addVoter(cid, laser) {
-                if (!cid || !laser) return alert("Please fill in both IDs");
 
+            async loadDashboard() {
                 try {
-                    const response = await fetch('http://localhost:3000/admin/add-voter', {
+                    const res = await fetch('http://localhost:3000/admin/stats');
+                    const data = await res.json();
+                    document.getElementById('stat-voters').innerText = data.voters;
+                    document.getElementById('stat-cands').innerText = data.candidates;
+                    document.getElementById('stat-votes').innerText = data.votes;
+                    document.getElementById('stat-percent').innerText = data.turnout + "%";
+                    document.getElementById('last-cand-id').innerText = data.lastCandidateId || 'None';
+                } catch (err) { console.error("Stats Error:", err); }
+            },
+
+            // voter management
+            async fetchVoters() {
+                try {
+                    const res = await fetch('http://localhost:3000/admin/voters');
+                    this.allVoters = await res.json();
+                    this.renderVoterTable();
+                } catch (err) { console.error("Fetch Voters Error:", err); }
+            },
+
+            renderVoterTable() {
+                const query = document.getElementById('search-voter').value.toLowerCase();
+                const table = document.getElementById('admin-user-table');
+                const filtered = this.allVoters.filter(v => v.citizen_id.includes(query));
+
+                let html = `<thead><tr><th>Voter ID</th><th>Citizen ID</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+                filtered.forEach(v => {
+                    const isActive = v.is_enabled == 1;
+                    html += `<tr>
+                        <td>${v.voter_id}</td>
+                        <td>${v.citizen_id}</td>
+                        <td><span style="color:${isActive ? '#22C55E' : '#EF4444'}">● ${isActive ? 'Active' : 'Disabled'}</span></td>
+                        <td><button onclick="AdminService.toggleVoter(${v.voter_id}, ${v.is_enabled})" style="background:${isActive ? '#EF4444' : '#22C55E'}; width:80px; color:white; border:none; border-radius:4px;">${isActive ? 'Disable' : 'Enable'}</button></td>
+                    </tr>`;
+                });
+                table.innerHTML = html + `</tbody>`;
+            },
+
+            async toggleVoter(id, currentStatus) {
+                const res = await fetch('http://localhost:3000/admin/voter/toggle-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ voter_id: id, current_status: currentStatus })
+                });
+                if (res.ok) this.fetchVoters();
+            },
+
+            // 3. จัดการ Candidate
+            async fetchCandidates() {
+                try {
+                    const res = await fetch('http://localhost:3000/admin/candidates');
+                    this.allCandidates = await res.json();
+                    this.renderCandidateTable();
+                } catch (err) { console.error("Fetch Candidates Error:", err); }
+            },
+
+            renderCandidateTable() {
+                const query = document.getElementById('search-cand').value.toLowerCase();
+                const table = document.getElementById('admin-cand-table');
+
+                // กรองข้อมูลตามช่อง Search
+                const filtered = this.allCandidates.filter(c =>
+                    (c.candidate_id || '').toString().includes(query) ||
+                    (c.name && c.name.toLowerCase().includes(query))
+                );
+
+                let html = `<thead><tr><th>No.</th><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+                filtered.forEach(c => {
+                    const isActive = c.is_enabled == 1;
+                    html += `<tr>
+            <td><strong>${c.candidate_id}</strong></td>
+            <td>${c.name || '<i style="color:gray;">No Name</i>'}</td>
+            <td><span style="color:${isActive ? '#22C55E' : '#EF4444'}">● ${isActive ? 'Active' : 'Disabled'}</span></td>
+            <td>
+                <button onclick="AdminService.toggleCandidate('${c.candidate_id}', ${c.is_enabled})" 
+                    style="background:${isActive ? '#EF4444' : '#22C55E'}; width:80px; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    ${isActive ? 'Disable' : 'Enable'}
+                </button>
+            </td>
+            </tr>`;
+                });
+                table.innerHTML = html + (filtered.length === 0 ? '<tr><td colspan="4">No candidates found</td></tr>' : '') + `</tbody>`;
+            },
+
+            async toggleCandidate(id, currentStatus) {
+                try {
+                    const res = await fetch('http://localhost:3000/admin/candidate/toggle-status', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ citizen_id: cid, laser_id: laser })
+                        body: JSON.stringify({ candidate_id: id, current_status: currentStatus })
                     });
-                    const data = await response.json();
+                    if (res.ok) this.fetchCandidates();
+                } catch (err) { console.error(err); }
+            },
+            // 4. Live Results Chart
+            async fetchLiveResults() {
+                try {
+                    const res = await fetch('http://localhost:3000/admin/results');
+                    const data = await res.json();
+                    const labels = data.map(c => c.name || `ID ${c.candidate_id}`);
+                    const votes = data.map(c => c.vote_count);
 
-                    if (data.success) {
-                        alert(data.message);
-                        loadDashboardData();
-                        document.getElementById('new-voter-cid').value = '';
-                        document.getElementById('new-voter-laser').value = '';
+                    if (myChart) {
+                        myChart.data.labels = labels;
+                        myChart.data.datasets[0].data = votes;
+                        myChart.update();
                     } else {
-                        alert("Error: " + data.message);
+                        const ctx = document.getElementById('resultsChart').getContext('2d');
+                        myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Votes (Live)',
+                                    data: votes,
+                                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1,
+                                    barThickness: 60,
+                                    maxBarThickness: 60
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y',
+                                responsive: true,
+                                layout: {
+                                    padding: 30
+                                },
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        grace: '15%'
+                                    },
+                                    y: {
+                                        ticks: {
+                                            padding: 10
+                                        }
+                                    }
+                                }
+                            }
+                        });
                     }
                 } catch (err) {
-                    console.error("Register failed:", err);
+                    console.error("Fetch Error:", err);
                 }
             },
 
-            async addCandidate(candidate_id) {
-                if (!candidate_id) return alert("Please enter a candidate ID (e.g., CAND-01)");
-
+            // global system toggle
+            async toggleSystem() {
                 try {
-                    const response = await fetch('http://localhost:3000/admin/add-candidate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: name })
+                    const res = await fetch('http://localhost:3000/admin/toggle-system', {
+                        method: 'POST'
                     });
-                    const data = await response.json();
 
+                    if (!res.ok) throw new Error('Network response was not ok');
+
+                    const data = await res.json();
                     if (data.success) {
-                        alert(data.message);
-                        loadDashboardData();
-                        document.getElementById('new-cand-id').value = '';
+                        this.updateSystemUI(data.newStatus);
                     }
                 } catch (err) {
-                    console.error("Candidate creation failed:", err);
+                    console.error("Toggle Error:", err);
+                    alert("cannot toggle system status. Please try again.");
+                }
+            },
+
+            updateSystemUI(status) {
+                const text = document.getElementById('system-status-text');
+                const btn = document.getElementById('system-toggle-btn');
+
+                if (status === 1) {
+                    text.innerText = "OPEN";
+                    text.style.color = "#22C55E";
+                    btn.style.background = "#EF4444";
+                    btn.innerText = "Close System";
+                } else {
+                    text.innerText = "CLOSED";
+                    text.style.color = "#EF4444";
+                    btn.style.background = "#22C55E";
+                    btn.innerText = "Open System";
                 }
             }
         };
 
+        // --- UI Helper Functions ---
+        function switchAdminTab(name) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (name === 'voters') AdminService.fetchVoters();
+            if (name === 'candidates') AdminService.fetchCandidates();
+            if (name === 'results') AdminService.fetchLiveResults();
+        }
+
+        async function handleVoterReg() {
+            const cid = document.getElementById('new-voter-cid').value;
+            const laser = document.getElementById('new-voter-laser').value;
+            if (!cid || !laser) return alert("Please fill all fields");
+
+            const res = await fetch('http://localhost:3000/admin/add-voter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ citizen_id: cid, laser_id: laser })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                AdminService.loadDashboard();
+                document.getElementById('new-voter-cid').value = '';
+                document.getElementById('new-voter-laser').value = '';
+            }
+        }
+
+        async function handleCandReg() {
+            const id = document.getElementById('new-cand-id').value;
+            if (!id) return alert("Please assign an ID");
+
+            const res = await fetch('http://localhost:3000/admin/add-candidate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ candidate_id: id })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                AdminService.loadDashboard();
+                document.getElementById('new-cand-id').value = '';
+            }
+        }
+        let emergencyAction = '';
+
+        function initiateEmergency(action) {
+            emergencyAction = action;
+            const descElement = document.getElementById('emergency-desc');
+
+            switch (action) {
+                case 'reset-votes':
+                    descElement.innerHTML = "Are you sure you want to reset all votes cast in the system? <br><br><strong style='color:red;'>Warning: This will not delete voters or candidates, but will clear all voting data and reset turnout rates to 0%.</strong>";
+                    break;
+                case 'clear-voters':
+                    descElement.innerHTML = "Are you sure you want to delete all registered voters? <br><br><strong style='color:red;'>Warning: This will also delete all votes cast by these voters.</strong>";
+                    break;
+                case 'clear-candidates':
+                    descElement.innerHTML = "Are you sure you want to delete all candidates? <br><br><strong style='color:red;'>Warning: This will also delete all votes cast for these candidates.</strong>";
+                    break;
+                case 'factory-reset':
+                    descElement.innerHTML = "Are you sure you want to delete all voters, candidates, and votes? <br><br><strong style='color:red;'>CRITICAL: This action cannot be undone and will reset the system to its initial state.</strong>";
+                    break;
+                default:
+                    descElement.innerHTML = "Are you sure you want to perform this action?";
+            }
+
+            document.getElementById('emergency-modal').style.display = 'flex';
+        }
+
+        function closeEmergency() {
+            document.getElementById('emergency-modal').style.display = 'none';
+            document.getElementById('emergency-step-1').style.display = 'block';
+            document.getElementById('emergency-step-2').style.display = 'none';
+        }
+
+
+        function emergencyStep2() {
+            document.getElementById('emergency-step-1').style.display = 'none';
+            document.getElementById('emergency-step-2').style.display = 'block';
+        }
+
+        async function executeEmergency() {
+            try {
+                const res = await fetch(`http://localhost:3000/admin/emergency/${emergencyAction}`, {
+                    method: 'POST'
+                });
+
+                if (!res.ok) throw new Error("Server responded with an error");
+
+                const data = await res.json();
+                alert(data.message || "successfully executed emergency action");
+
+                location.reload();
+            } catch (err) {
+                console.error("Emergency Action Failed:", err);
+                alert("An error occurred while executing the emergency action. Please try again.");
+            } finally {
+                closeEmergency();
+            }
+        }
+
+        // --- Initial Load ---
+        window.onload = () => {
+            AdminService.loadDashboard();
+            AdminService.fetchCandidates();
+            AdminService.fetchVoters();
+            fetch('http://localhost:3000/admin/system-status')
+                .then(r => r.json())
+                .then(d => AdminService.updateSystemUI(d.voting_enabled));
+        };
     </script>
 </body>
 
