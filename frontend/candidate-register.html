@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Candidate Registration</title>
+    <title>Candidate Activation</title>
 </head>
 
 <body class="login-body">
@@ -13,29 +13,71 @@
         <div class="auth-card" style="border-top-color: var(--mfu-gold);">
             <div class="auth-header">
                 <img src="mfu-logo.png" alt="MFU Logo" class="mfu-logo" style="height: 70px;">
-                <h2 style="color: var(--text-main); margin: 0;">Initial Registration</h2>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Register with the ID
-                    provided by Admin.</p>
+                <h2 style="color: var(--text-main); margin: 0;">Activate Account</h2>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">
+                    Enter the ID provided by your Admin to set up your password.
+                </p>
             </div>
 
-            <label>Candidate ID</label>
-            <input type="text" id="c-reg-id" placeholder="e.g., CAND-01">
+            <label for="c-reg-id">Provided Candidate ID</label>
+            <input type="text" id="c-reg-id" placeholder="e.g., CAND-01" required>
 
-            <label>Create Password</label>
-            <input type="password" id="c-reg-pw" placeholder="Create a secure password">
+            <label for="c-reg-pw">Set Your Password</label>
+            <input type="password" id="c-reg-pw" placeholder="Choose a strong password" required>
 
             <button id="register-btn"
-                style="padding: 1rem; font-size: 1.05rem; background: var(--text-main); margin-top: 0.5rem;">
-                Register Account
+                style="padding: 1rem; font-size: 1.05rem; background: var(--text-main); margin-top: 0.5rem; cursor: pointer;">
+                Complete Registration
             </button>
 
             <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
-                Already registered? <a href="candidate-login.html"
+                Already activated? <a href="candidate-login.html"
                     style="color: var(--navy-primary); font-weight: 600;">Login here</a>
             </p>
         </div>
     </div>
-    <script src="api/candidate_register.js"></script>
-</body>
 
+    <script>
+        const registerBtn = document.getElementById('register-btn');
+
+        registerBtn.addEventListener('click', async () => {
+            const candidate_id = document.getElementById('c-reg-id').value.trim();
+            const password = document.getElementById('c-reg-pw').value;
+
+            if (!candidate_id || !password) {
+                alert('Please fill in both fields.');
+                return;
+            }
+
+            // Disable button to prevent double-clicks
+            registerBtn.disabled = true;
+            registerBtn.innerText = 'Processing...';
+
+            try {
+                const res = await fetch('http://localhost:3000/candidate/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ candidate_id, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Account activated successfully! You can now log in.');
+                    window.location.href = 'candidate-login.html';
+                } else {
+                    // This will show your custom error message if the ID wasn't found in the DB
+                    alert('Activation failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Connection error. Please check if the server is running.');
+            } finally {
+                // Re-enable button if something goes wrong
+                registerBtn.disabled = false;
+                registerBtn.innerText = 'Complete Registration';
+            }
+        });
+    </script>
+</body>
 </html>

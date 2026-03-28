@@ -1,35 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Candidate Login</title>
+   
 </head>
+
 <body class="login-body">
     <div class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
                 <img src="mfu-logo.png" alt="MFU Logo" class="mfu-logo" style="height: 70px;">
                 <h2 style="color: var(--text-main); margin: 0;">Candidate Login</h2>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Access your campaign dashboard.</p>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Access your campaign
+                    dashboard.</p>
             </div>
-            
+
             <label>Candidate ID</label>
             <input type="text" id="c-log-id" placeholder="e.g., CAND-01">
-            
+
             <label>Password</label>
             <input type="password" id="c-log-pw" placeholder="Enter Password">
-            
-            <button onclick="loginCandidate(document.getElementById('c-log-id').value, document.getElementById('c-log-pw').value)" style="padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem;">Secure Login</button>
-            
+
+            <button id="login-btn" style="padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem;">Secure Login</button>
+
             <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
-                First time here? <a href="candidate-register.html" style="color: var(--navy-primary); font-weight: 600;">Register your account</a>
+                First time here? <a href="candidate-register.html"
+                    style="color: var(--navy-primary); font-weight: 600;">Register your account</a>
             </p>
-            <p style="text-align: center; margin-top: 0.5rem;"><a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">← Back to Home</a></p>
+            <p style="text-align: center; margin-top: 0.5rem;"><a href="index.html"
+                    style="color: var(--text-muted); text-decoration: none; font-weight: 600;">← Back to Home</a></p>
         </div>
     </div>
-    <script src="api/candidate_login.js"></script>
-    
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+
+        loginBtn.addEventListener('click', async () => {
+            const username = document.getElementById('c-log-id').value;
+            const password = document.getElementById('c-log-pw').value;
+
+    if (!username || !password) {
+        alert('Please fill in both fields');
+        return;
+    }
+
+    // Add loading state
+    loginBtn.disabled = true;
+    loginBtn.innerText = 'Verifying...';
+
+    try {
+        const res = await fetch('http://localhost:3000/candidate/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            sessionStorage.setItem('candidateID', data.candidate.username); 
+            window.location.href = 'candidate-main.html'; 
+        } else {
+            alert('Login failed: ' + data.message);
+        }
+    } catch (err) {
+        console.error('Fetch Error:', err);
+        alert('Cannot connect to the server');
+    } finally {
+        // Reset button state
+        loginBtn.disabled = false;
+        loginBtn.innerText = 'Secure Login';
+    }
+});
+    </script>
+
 </body>
+
 </html>

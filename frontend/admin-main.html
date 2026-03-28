@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Admin Console | MFU E-Voting</title>
 </head>
 
 <body>
     <nav class="navbar" style="border-bottom: 4px solid var(--red-important);">
         <div class="brand">MFU Admin Console</div>
-        <div class="nav-links"><button onclick="location.replace('admin-login.html'),localStorage.clear(),sessionStorage.clear()">End Secure Session</button></div>
+        <div class="nav-links"><button
+                onclick="location.replace('admin-login.html'),localStorage.clear(),sessionStorage.clear()">End Secure
+                Session</button></div>
     </nav>
 
     <div class="container">
@@ -116,16 +117,27 @@
 
     <div id="tab-results" class="tab-content">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Live Election Results</h2>
-                <button onclick="AdminService.fetchLiveResults()"
-                    style="width: auto; background: var(--navy-primary);">Refresh Data</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Live Election Standings</h2>
+                <input type="text" id="results-search" placeholder="Search Candidate..."
+                    oninput="AdminService.fetchLiveResults()"
+                    style="width: 250px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
             </div>
-            <div class="chart-container">
-                <canvas id="resultsChart"></canvas>
+
+            <div style="max-height: 600px; overflow-y: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                            <th style="width: 80px;">Rank</th>
+                            <th>Candidate Name</th>
+                            <th style="text-align: right; width: 150px;">Total Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
     </div>
 
     <div id="emergency-modal" class="modal"
@@ -147,7 +159,19 @@
     </div>
 
     <script>
-        let myChart = null;
+
+        // --- 1. LOGIN SECURITY CHECK ---
+        const isLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
+        if (!isLoggedIn) {
+            alert("Access Denied. Please log in first.");
+            window.location.replace('admin-login.html');
+        }
+
+        function endSession() {
+            localStorage.clear();
+            sessionStorage.clear();
+            location.replace('admin-login.html');
+        }
 
         const AdminService = {
             allVoters: [],
@@ -202,7 +226,7 @@
                 if (res.ok) this.fetchVoters();
             },
 
-            // 3. จัดการ Candidate
+            // 3. Manage Candidate
             async fetchCandidates() {
                 try {
                     const res = await fetch('http://localhost:3000/admin/candidates');
@@ -249,58 +273,64 @@
                     if (res.ok) this.fetchCandidates();
                 } catch (err) { console.error(err); }
             },
+
             // 4. Live Results Chart
+            // แก้ไขฟังก์ชัน fetchLiveResults ภายในตัวแปร AdminService:
+
             async fetchLiveResults() {
                 try {
                     const res = await fetch('http://localhost:3000/admin/results');
-                    const data = await res.json();
-                    const labels = data.map(c => c.name || `ID ${c.candidate_id}`);
-                    const votes = data.map(c => c.vote_count);
+                    if (!res.ok) throw new Error("Failed to fetch");
 
-                    if (myChart) {
-                        myChart.data.labels = labels;
-                        myChart.data.datasets[0].data = votes;
-                        myChart.update();
-                    } else {
-                        const ctx = document.getElementById('resultsChart').getContext('2d');
-                        myChart = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Votes (Live)',
-                                    data: votes,
-                                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                                    borderColor: 'rgba(54, 162, 235, 1)',
-                                    borderWidth: 1,
-                                    barThickness: 60,
-                                    maxBarThickness: 60
-                                }]
-                            },
-                            options: {
-                                indexAxis: 'y',
-                                responsive: true,
-                                layout: {
-                                    padding: 30
-                                },
-                                scales: {
-                                    x: {
-                                        beginAtZero: true,
-                                        grace: '15%'
-                                    },
-                                    y: {
-                                        ticks: {
-                                            padding: 10
-                                        }
-                                    }
-                                }
-                            }
-                        });
+                    const data = await res.json();
+                    const searchTerm = document.getElementById('results-search').value.toLowerCase();
+                    const tbody = document.getElementById('results-table-body');
+
+                    // 1. กรองข้อมูลและเรียงลำดับคะแนน (มากไปน้อย)
+                    const filteredData = data
+                        .filter(c => (c.name || '').toLowerCase().includes(searchTerm))
+                        .sort((a, b) => b.vote_count - a.vote_count);
+
+                    // 2. ล้างตารางเดิม
+                    tbody.innerHTML = '';
+
+                    if (filteredData.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:2rem; color:gray;">No candidates found</td></tr>';
+                        return;
                     }
+
+                    // 3. สร้าง HTML แถวตาราง
+                    let htmlRows = '';
+                    filteredData.forEach((c, index) => {
+                        const rank = index + 1;
+
+                        // ตกแต่งลำดับ 1, 2, 3 ด้วยอีโมจิ
+                        const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+
+                        htmlRows += `
+                <tr>
+                    <td style="font-weight: bold; font-size: 1.1rem; color: var(--navy-primary);">${rankDisplay}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap: 10px;">
+                            <span style="font-weight: 600;">${c.name || 'Unnamed Candidate'}</span>
+                            <small style="color: #94a3b8;">(candidate number: ${c.candidate_id})</small>
+                        </div>
+                    </td>
+                    <td style="text-align: right; font-weight: 800; color: #059669; font-size: 1.1rem;">
+                        ${c.vote_count.toLocaleString()}
+                    </td>
+                </tr>
+            `;
+                    });
+
+                    tbody.innerHTML = htmlRows;
+
                 } catch (err) {
-                    console.error("Fetch Error:", err);
+                    console.error("Fetch Results Error:", err);
+                    document.getElementById('results-table-body').innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error loading real-time data</td></tr>';
                 }
             },
+
 
             // global system toggle
             async toggleSystem() {
@@ -338,6 +368,13 @@
                 }
             }
         };
+
+        setInterval(() => {
+            const resultsTab = document.getElementById('tab-results');
+            if (resultsTab && resultsTab.classList.contains('active')) {
+                fetchLiveResults();
+            }
+        }, 30);
 
         // --- UI Helper Functions ---
         function switchAdminTab(name) {
@@ -386,6 +423,8 @@
                 document.getElementById('new-cand-id').value = '';
             }
         }
+
+
         let emergencyAction = '';
 
         function initiateEmergency(action) {

@@ -32,41 +32,39 @@
     </div>
     <script>
 
-        const Auth = {
-            loginVoter: async (citizen_id, laser_id) => {
-                if (!citizen_id || !laser_id) {
-                    alert("Please fill in all fields.");
-                    return;
-                }
+      const Auth = {
+    loginVoter: async (citizen_id, laser_id) => {
+        // Basic validation
+        if (!citizen_id || !laser_id) {
+            alert("Please fill in both Citizen ID and Laser ID.");
+            return;
+        }
 
-                try {
-                    const response = await fetch('http://localhost:3000/voter/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ citizen_id, laser_id })
-                    });
+        try {
+            const response = await fetch('http://localhost:3000/voter/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ citizen_id, laser_id })
+            });
 
-                    const data = await response.json();
+            const data = await response.json();
 
-                    if (response.ok) {
-
-                        alert("Login successful! Welcome, " + (data.voter.name || "Voter"));
-
-                        localStorage.setItem('user', JSON.stringify(data.voter));
-
-                        // window.location.href = "voting-dashboard.html";
-                    } else {
-                        alert("Login failed: " + data.message);
-                    }
-                } catch (error) {
-                    console.error("Error during login:", error);
-                    alert("cannot connect to server. Please try again later.");
-                }
+            if (response.ok) {
+                // 1. Save voter data to localStorage
+                localStorage.setItem('voterData', JSON.stringify(data.voter));
+                
+                // 2. Redirect to dashboard
+                window.location.href = 'voter-main.html';
+            } else {
+                // Handle errors (Wrong ID, disabled account, etc.)
+                alert(data.message || "Authentication failed");
             }
-        };
-
+        } catch (err) {
+            console.error("Login Error:", err);
+            alert("Could not connect to the authentication server.");
+        }
+    }
+};
     </script>
 </body>
 

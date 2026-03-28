@@ -1,70 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Candidate Portal</title>
+    <title>Candidate Portal | MFU E-Voting</title>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="brand">MFU E-Voting <span style="font-weight: 400; opacity: 0.8;">| Candidate</span></div>
-        <div class="nav-links"><button onclick="Auth.logout()">Sign Out</button></div>
+        <div class="nav-links">
+            <button onclick="Auth.logout()" class="logout-btn">Sign Out</button>
+        </div>
     </nav>
-    <div class="container">
-        
-        <div class="card" style="background: #EFF6FF; border-left: 5px solid var(--navy-primary); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+
+    <div class="container main-container">
+
+        <div class="welcome-card">
             <div>
-                <p style="margin: 0; color: var(--navy-primary); font-weight: 600; font-size: 0.85rem;">✓ Authenticated</p>
-                <h2 id="cand-welcome" style="margin: 0.25rem 0 0 0; font-size: 1.5rem;">Welcome</h2>
+                <p style="margin: 0; color: var(--navy-primary); font-weight: 600; font-size: 0.85rem;">✓ Authenticated
+                    Session</p>
+                <h2 id="cand-welcome" style="margin: 0.25rem 0 0 0; font-size: 1.8rem;">Welcome, Candidate</h2>
             </div>
-            <div style="text-align: right; background: white; padding: 0.75rem 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Verified Votes</p>
-                <h3 id="cand-score" style="margin: 0; color: var(--success); font-size: 1.75rem;">0</h3>
+            <div class="score-box">
+                <p
+                    style="margin: 0; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+                    Current Votes</p>
+                <h3 id="cand-score" style="margin: 0; color: #10B981; font-size: 2.2rem;">0</h3>
             </div>
         </div>
 
-        <div class="tabs">
+        <div class="tabs-container">
             <button class="tab-btn active" onclick="switchCandTab('profile')">My Profile & Settings</button>
             <button class="tab-btn" onclick="switchCandTab('results')">Live Results & Search</button>
         </div>
 
         <div id="tab-profile" class="tab-content active">
-            <div class="grid-2" style="align-items: start;">
-                
-                <div class="card" style="border-top: 3px solid var(--navy-primary); margin-bottom: 0; display: flex; flex-direction: column; height: 450px;">
-                    <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Update Campaign Info</h2>
-                    
-                    <label>Display Name</label>
-                    <input type="text" id="up-name" placeholder="Enter your full name">
-                    
-                    <label>Campaign Policy</label>
-                    <textarea id="up-policy" placeholder="Detail your campaign promises and goals..." style="flex-grow: 1; resize: none; margin-bottom: 1rem;"></textarea>
-                    
-                    <button id="save-profile-btn" style="margin-top: auto;">Publish Changes</button>
+            <div class="grid-2">
+                <div class="card-profile">
+                    <h2 class="section-title">Update Campaign Info</h2>
+
+                    <label class="form-label">Display Name</label>
+                    <input type="text" id="up-name" class="form-input" placeholder="Enter your full name">
+
+                    <label class="form-label">Upload Profile Image</label>
+                    <input type="file" id="up-img-file" class="form-input" accept="image/*"
+                        style="background: #fff; padding: 0.5rem;">
+                    <input type="hidden" id="up-img">
+
+                    <label class="form-label">Campaign Policy</label>
+                    <textarea id="up-policy" class="form-textarea"
+                        placeholder="Detail your campaign promises..."></textarea>
+
+                    <button id="save-profile-btn" class="btn-primary">Publish Changes</button>
                 </div>
 
-                <div class="card" style="border-top: 3px solid var(--mfu-gold); margin-bottom: 0; display: flex; flex-direction: column; height: 450px;">
-                    <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Public Profile Preview</h2>
-                    
-                    <div id="cand-profile-preview" style="flex-grow: 1; overflow-y: auto; padding-right: 0.5rem;">
-                        </div>
+                <div class="card-preview">
+                    <h2 class="section-title">Public Profile Preview</h2>
+                    <div id="cand-profile-preview" class="preview-box">
+                    </div>
                 </div>
-                
             </div>
         </div>
 
         <div id="tab-results" class="tab-content">
             <div class="card">
-                <h2>Live Election Standings</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Search for a candidate to see their current verified votes.</p>
-                <input type="text" placeholder="Search candidate by name..." onkeyup="CandidateService.renderResults(this.value)" style="margin-bottom: 1rem;">
-                <table id="cand-result-table">
-                </table>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Live Election Results</h2>
+                    <input type="text" id="results-search" placeholder="Search Candidate Name..."
+                        oninput="fetchLiveResults()"
+                        style="width: 250px; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+
+                <div style="max-height: 500px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Candidate Name</th>
+                                <th style="text-align: right;">Votes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-
     </div>
-    <script src="app.js"></script>
+
+    <script>
+        // 1. Auth Check Function
+        function checkAuth() {
+            const id = sessionStorage.getItem('candidateID');
+            if (!id) {
+                window.location.href = 'candidate-login.html';
+                return null;
+            }
+            return id;
+        }
+
+        // Initialize App
+        const candidateID = checkAuth();
+
+        // Only run the rest if authenticated
+        if (candidateID) {
+            document.addEventListener('DOMContentLoaded', () => {
+
+                loadCandidateData(candidateID);
+            });
+
+            // 2. Render display data
+            async function loadCandidateData(id) {
+                try {
+                    const res = await fetch(`http://localhost:3000/candidate/profile/${id}`);
+                    const data = await res.json();
+
+                    if (res.ok) {
+
+                        const candidatename = data.name || id;
+                        document.getElementById('cand-welcome').innerText = `Welcome, ${candidatename}`;
+
+                        document.getElementById('up-name').value = data.name || '';
+                        document.getElementById('up-policy').value = data.policy || '';
+                        document.getElementById('up-img').value = data.img || '';
+                        document.getElementById('cand-score').innerText = data.votes || 0;
+
+                        renderPreview(data.name, data.policy, data.img);
+                    }
+                } catch (err) {
+                    console.error("Load Error:", err);
+                }
+            }
+
+            // 3. Update profile
+            document.getElementById('save-profile-btn').addEventListener('click', async () => {
+                const btn = document.getElementById('save-profile-btn');
+                const fileInput = document.getElementById('up-img-file');
+
+                const formData = new FormData();
+                formData.append('candidate_id', candidateID);
+                formData.append('name', document.getElementById('up-name').value);
+                formData.append('policy', document.getElementById('up-policy').value);
+
+                if (fileInput.files[0]) {
+                    formData.append('imgFile', fileInput.files[0]);
+                } else {
+                    formData.append('img', document.getElementById('up-img').value);
+                }
+
+                btn.innerText = "Saving...";
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('http://localhost:3000/candidate/update-profile', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await res.json();
+                    if (res.ok) {
+                        alert("Profile Updated!");
+                        document.getElementById('up-img').value = result.imgUrl;
+                        fileInput.value = ""; // Clear input after upload
+
+                        renderPreview(
+                            document.getElementById('up-name').value,
+                            document.getElementById('up-policy').value,
+                            result.imgUrl
+                        );
+                    }
+                } catch (err) {
+                    alert("Error saving profile.");
+                } finally {
+                    btn.innerText = "Publish Changes";
+                    btn.disabled = false;
+                }
+            });
+
+            // 4. Render preview function 
+            function renderPreview(name, policy, imgSource) {
+                const previewArea = document.getElementById('cand-profile-preview');
+                const defaultImg = 'https://www.w3schools.com/howto/img_avatar.png';
+                const imgSrc = imgSource ? imgSource : defaultImg;
+
+                previewArea.innerHTML = `
+                    <div class="preview-img-container">
+                        <img src="${imgSrc}" class="preview-img" onerror="this.src='${defaultImg}'">
+                    </div>
+                    <h3 style="margin: 0; color: #1e3a8a; font-size: 1.6rem;">${name || 'Unnamed Candidate'}</h3>
+                    <p style="color: #888; font-size: 0.95rem; margin-top: 0.4rem;">ID: ${candidateID}</p>
+                    <div class="policy-display">
+                        <strong style="display: block; margin-bottom: 0.6rem; color: #1e3a8a;">Campaign Policy:</strong>
+                        <p style="white-space: pre-wrap; margin: 0; color: #444;">${policy || 'No policy defined yet.'}</p>
+                    </div>
+                `;
+            }
+
+            // 5. Local image preview
+            document.getElementById('up-img-file').addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewImg = document.querySelector('.preview-img');
+                        if (previewImg) {
+                            previewImg.src = e.target.result;
+                        } else {
+                            renderPreview(document.getElementById('up-name').value, document.getElementById('up-policy').value, e.target.result);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 6. Switch tab
+            function switchCandTab(tabName) {
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+
+                // Find the clicked button and set it active
+                const buttons = document.querySelectorAll('.tab-btn');
+                if (tabName === 'profile') buttons[0].classList.add('active');
+                if (tabName === 'results') {
+                    buttons[1].classList.add('active');
+                    fetchLiveResults();
+                }
+            }
+
+            // 7. Live Results Logic
+            const myCandidateID = sessionStorage.getItem('candidateID');
+
+            async function fetchLiveResults() {
+                try {
+                    const res = await fetch('http://localhost:3000/admin/results');
+                    if (!res.ok) throw new Error("Failed to fetch results");
+
+                    const data = await res.json();
+                    const searchTerm = document.getElementById('results-search').value.toLowerCase();
+                    const tbody = document.getElementById('results-table-body');
+
+                    // 1. Calculate Total Votes first (for percentage math)
+                    const totalVotes = data.reduce((sum, c) => sum + (c.vote_count || 0), 0);
+
+                    // 2. Filter and Sort
+                    const filteredData = data
+                        .filter(c =>
+                            (c.name || '').toLowerCase().includes(searchTerm) ||
+                            String(c.candidate_id).toLowerCase().includes(searchTerm)
+                        )
+                        .sort((a, b) => b.vote_count - a.vote_count);
+
+                    tbody.innerHTML = '';
+
+                    if (filteredData.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:gray;">No candidates found</td></tr>';
+                        return;
+                    }
+
+                    // 3. Build the rows
+                    let htmlRows = '';
+                    filteredData.forEach((c, index) => {
+                        const rank = index + 1;
+                        const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+
+                        // Calculate percentage (handle divide by zero)
+                        const percent = totalVotes > 0 ? ((c.vote_count / totalVotes) * 100).toFixed(1) : 0;
+
+                        const isMe = c.candidate_id == myCandidateID ? 'style="background-color: #f0f9ff; border-left: 4px solid var(--navy-primary);"' : '';
+
+                        htmlRows += `
+                <tr ${isMe} style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="font-weight: bold; padding: 12px 10px;">${rankDisplay}</td>
+                    <td style="padding: 12px 10px;">
+                        <div style="display:flex; flex-direction:column; gap: 4px;">
+                            <div style="display:flex; align-items:center; gap: 10px;">
+                                <span style="font-weight: 600;">${c.name || 'Unnamed Candidate'}</span>
+                                <span style="color: #6B7280; font-size: 0.8rem;">(ID: ${c.candidate_id})</span>
+                                ${c.candidate_id == myCandidateID ? '<span class="badge" style="background:var(--navy-primary); color:white; font-size:10px; padding:2px 6px; border-radius:4px;">YOU</span>' : ''}
+                            </div>
+                            <div style="width: 100%; background: #E5E7EB; height: 6px; border-radius: 3px; margin-top: 4px;">
+                                <div style="width: ${percent}%; background: var(--success); height: 100%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: right; padding: 12px 10px;">
+                        <span style="display: block; font-weight: 700; color: #059669;">${(c.vote_count || 0).toLocaleString()}</span>
+                        <small style="color: #6B7280;">${percent}%</small>
+                    </td>
+                </tr>
+            `;
+                    });
+
+                    tbody.innerHTML = htmlRows;
+
+                } catch (err) {
+                    console.error("Fetch Results Error:", err);
+                    document.getElementById('results-table-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading results</td></tr>';
+                }
+            }
+
+            setInterval(() => {
+                const resultsTab = document.getElementById('tab-results');
+                if (resultsTab && resultsTab.classList.contains('active')) {
+                    fetchLiveResults();
+                }
+            }, 500);
+
+        }
+
+        // 8. Logout Function
+        const Auth = {
+            logout: () => {
+                if (confirm("Are you sure you want to sign out?")) {
+                    sessionStorage.removeItem('candidateID');
+                    window.location.href = 'candidate-login.html';
+                }
+            }
+        };
+    </script>
 </body>
+
 </html>

@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Voter Dashboard</title>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="brand">MFU E-Voting</div>
         <div class="nav-links"><button onclick="Auth.logout()">Sign Out</button></div>
     </nav>
     <div class="container">
-        <div class="card" style="background: #ECFDF5; border-left: 5px solid var(--success); padding: 1rem; display: flex; justify-content: space-between;">
-            <p style="margin: 0; color: #065F46; font-weight: 600;">✓ Your Status: Authenticated</p>
+        <div class="card"
+            style="background: #ECFDF5; border-left: 5px solid var(--success); padding: 1rem; display: flex; justify-content: space-between;">
+            <p id="auth-status-text" style="margin: 0; color: #065F46; font-weight: 600;">✓ Your Status: Authenticated
+            </p>
             <p id="voter-status-id" style="margin: 0; font-size: 0.85rem; color: var(--text-muted);"></p>
         </div>
-
-        <div class="stats-grid" style="margin-top: 1.5rem;">
-            <div class="stat-card"><p>Registered Voters</p><h3 id="v-stat-voters">0</h3></div>
-            <div class="stat-card"><p>Active Candidates</p><h3 id="v-stat-cands">0</h3></div>
-            <div class="stat-card"><p>Votes Cast</p><h3 id="v-stat-votes" style="color: var(--success);">0</h3></div>
-            <div class="stat-card"><p>Turnout Rate</p><h3 id="v-stat-percent" style="color: var(--navy-primary);">0%</h3></div>
+        <div id="global-system-status" class="card" style="margin-top: 1rem; text-align: center; font-weight: bold;">
+            Checking system status...
         </div>
-        
+        <div class="stats-grid" style="margin-top: 1.5rem;">
+            <div class="stat-card">
+                <p>Registered Voters</p>
+                <h3 id="v-stat-voters">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Active Candidates</p>
+                <h3 id="v-stat-cands">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Votes Cast</p>
+                <h3 id="v-stat-votes" style="color: var(--success);">0</h3>
+            </div>
+            <div class="stat-card">
+                <p>Turnout Rate</p>
+                <h3 id="v-stat-percent" style="color: var(--navy-primary);">0%</h3>
+            </div>
+
+        </div>
+
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('voting')">Dashboard & Voting</button>
             <button class="tab-btn" onclick="switchTab('results')">Live Results & Search</button>
@@ -31,17 +50,38 @@
 
         <div id="tab-voting" class="tab-content active">
             <div id="voting-booth-status" style="margin-bottom: 2rem;"></div>
-            
-            <h2 style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.75rem;">Official Candidate Ballot</h2>
-            <div id="candidate-directory" class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));"></div>
+
+            <h2
+                style="border-bottom: 2px solid var(--border-light); padding-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+                Official Candidate Ballot
+                <input type="text" id="ballot-search" placeholder="Quick find candidate..." onkeyup="filterCandidates()"
+                    style="width: 250px; font-size: 0.9rem; padding: 8px; margin: 0;">
+            </h2>
+
+            <div id="candidate-directory" class="stats-grid"
+                style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+            </div>
         </div>
 
         <div id="tab-results" class="tab-content">
             <div class="card">
                 <h2>Live Election Standings</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Search for a candidate to see their current verified votes.</p>
-                <input type="text" placeholder="Search candidate by name..." onkeyup="VoterService.renderResults(this.value)" style="margin-bottom: 1rem;">
-                <table id="voter-result-table">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Search for a candidate to
+                    see their current verified votes.</p>
+
+                <input type="text" id="results-search" placeholder="Search candidate by name..."
+                    onkeyup="fetchLiveResults()" style="margin-bottom: 1rem; width: 100%; padding: 8px;">
+
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #E5E7EB;">
+                            <th style="padding: 10px;">Rank</th>
+                            <th style="padding: 10px;">Candidate</th>
+                            <th style="padding: 10px; text-align: right;">Votes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -50,8 +90,10 @@
     <div id="vote-modal" class="modal">
         <div class="modal-content">
             <h3 style="color: var(--navy-primary); margin-bottom: 0.5rem;">Confirm Your Vote</h3>
-            <p>Are you sure you want to cast your official vote for <strong id="modal-cand-name" style="font-size: 1.1rem;"></strong>?</p>
-            <p style="font-size: 0.85rem; color: var(--red-important); font-weight: 600;">This action is final and cannot be undone.</p>
+            <p>Are you sure you want to cast your official vote for <strong id="modal-cand-name"
+                    style="font-size: 1.1rem;"></strong>?</p>
+            <p style="font-size: 0.85rem; color: var(--red-important); font-weight: 600;">This action is final and
+                cannot be undone.</p>
             <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                 <button onclick="confirmVote()" style="background: var(--success);">Yes, Cast Vote</button>
                 <button onclick="closeModal()" style="background: #E5E7EB; color: var(--text-main);">Cancel</button>
@@ -59,6 +101,286 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script>
+        // 1. ระบบจัดการการเข้าถึง (Auth)
+
+        const Auth = {
+            // Check if user is logged in
+            checkLogin: () => {
+                const voterData = JSON.parse(localStorage.getItem('voterData'));
+
+                if (!voterData || !voterData.citizen_id) {
+                    alert("Please log in to access this page.");
+                    window.location.replace('voter-login.html');
+                    return;
+                }
+
+                document.getElementById('voter-status-id').innerText = `ID: ${voterData.citizen_id}`;
+            },
+
+            logout: () => {
+                localStorage.removeItem('voterData');
+                alert("You have been logged out.");
+                window.location.replace('voter-login.html');
+            }
+        };
+
+        // 2. ระบบสลับหน้าจอ (Tabs)
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch('http://localhost:3000/admin/stats');
+                const data = await res.json();
+
+                document.getElementById('v-stat-voters').innerText = data.voters;
+                document.getElementById('v-stat-cands').innerText = data.candidates;
+                document.getElementById('v-stat-votes').innerText = data.votes;
+                document.getElementById('v-stat-percent').innerText = data.turnout + "%";
+            } catch (err) {
+                console.error("Stats Error:", err);
+            }
+        }
+
+        // load candidates and render ballot with voting buttons with search filter
+        let selectedCandidate = null;
+
+        async function loadCandidateDirectory() {
+            try {
+                const res = await fetch('http://localhost:3000/admin/candidates');
+                const candidates = await res.json();
+                const container = document.getElementById('candidate-directory');
+                container.innerHTML = '';
+
+                candidates.forEach(cand => {
+                    // Only show candidates that are enabled
+                    if (cand.is_enabled === 1) {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                    <div style="text-align: center; flex-direction: column; display: flex; align-items: center;">
+                        <img src="${cand.img || 'default-avatar.png'}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+                        <h3>${cand.name || 'Unnamed Candidate'}</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">ID: ${cand.candidate_id}</p>
+                        <p style="margin: 1rem 0; min-height: 40px;">${cand.policy || 'No policy stated.'}</p>
+                        <button onclick="openVoteModal('${cand.candidate_id}', '${cand.name}')" style="width: 100%;">Vote for Candidate</button>
+                    </div>
+                `;
+                        container.appendChild(card);
+                    }
+                });
+            } catch (err) {
+                console.error("Directory Error:", err);
+            }
+        }
+
+        function openVoteModal(id, name) {
+            selectedCandidate = { id, name };
+            document.getElementById('modal-cand-name').innerText = name;
+            document.getElementById('vote-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('vote-modal').style.display = 'none';
+        }
+
+        async function confirmVote() {
+            const voterData = JSON.parse(localStorage.getItem('voterData'));
+
+            // Ensure we are using voterData.voter_id from your DB schema
+            const payload = {
+                voter_id: voterData.voter_id,
+                candidate_id: selectedCandidate.id
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/voter/cast-vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert(result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server connection failed.");
+            }
+        }
+        async function checkUserVoted() {
+            const voterData = JSON.parse(localStorage.getItem('voterData'));
+            if (!voterData) return;
+
+            try {
+                const res = await fetch(`http://localhost:3000/voter/check-status/${voterData.voter_id}`);
+                const status = await res.json();
+
+                if (status.hasVoted) {
+                    const statusBox = document.getElementById('voting-booth-status');
+                    statusBox.innerHTML = `
+                    <div class="card" style="background: #DBEAFE; border-left: 5px solid #2563EB; padding: 1.5rem; text-align:center; color: #1E40AF;">
+                      <h3 style="margin-top: 0;">🗳️ Voting History</h3>
+                      <p style="font-size: 1.1rem; line-height: 1.6;">
+                       Thank you! Your vote was recorded on<br> 
+                       <strong>${new Date(status.voted_at).toLocaleString('th-TH')}</strong>
+                      </p>
+                        <div style="background: white; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px dashed #2563EB;">
+                            You voted for: <strong>${status.candidate_name}</strong><br>
+                            <small>Candidate Number: ${status.candidate_id}</small>
+                        </div>
+                    </div>
+               `;
+
+                    // Completely hide the ballot section to prevent confusion
+                    const ballotSection = document.getElementById('candidate-directory');
+                    ballotSection.innerHTML = `
+                <div style="text-align:center; padding: 2rem; opacity: 0.5;">
+                    <p>The ballot is no longer available because you have already cast your vote.</p>
+                </div>`;
+                }
+            } catch (err) {
+                console.error("Check Status Error:", err);
+            }
+        }
+
+        async function updateGlobalStatus() {
+            const statusElement = document.getElementById('global-system-status');
+
+            try {
+                const res = await fetch('http://localhost:3000/admin/system-status');
+                const data = await res.json();
+
+                if (data.voting_enabled === 1) {
+                    statusElement.innerText = "● ELECTION STATUS: OPEN";
+                    statusElement.className = "card status-open";
+                } else {
+                    statusElement.innerText = "○ ELECTION STATUS: CLOSED (Wait for Admin)";
+                    statusElement.className = "card status-closed";
+
+                    // Optional: Hide the ballot if voting is closed
+                    document.getElementById('candidate-directory').innerHTML =
+                        `<p style="text-align:center; padding: 2rem; color: var(--text-muted);">
+                    The ballot is currently hidden because voting is closed.
+                </p>`;
+                }
+            } catch (err) {
+                statusElement.innerText = "System Status: Connection Error";
+                console.error("Status Error:", err);
+            }
+        }
+
+        function filterCandidates() {
+            const query = document.getElementById('ballot-search').value.toLowerCase();
+            const directory = document.getElementById('candidate-directory');
+            const cards = directory.getElementsByClassName('card');
+
+            Array.from(cards).forEach(card => {
+                // Get the candidate name (h3) and the ID string (the first <p> tag)
+                const name = card.querySelector('h3').innerText.toLowerCase();
+                const idString = card.querySelectorAll('p')[0].innerText.toLowerCase();
+
+                // Check if the query is in the name OR the idString
+                if (name.includes(query) || idString.includes(query)) {
+                    card.style.display = ""; // Show
+                } else {
+                    card.style.display = "none"; // Hide
+                }
+            });
+        }
+
+        const myCandidateID = sessionStorage.getItem('candidateID');
+
+        async function fetchLiveResults() {
+            try {
+                const res = await fetch('http://localhost:3000/admin/results');
+                if (!res.ok) throw new Error("Failed to fetch results");
+
+                const data = await res.json();
+                const searchTerm = document.getElementById('results-search').value.toLowerCase();
+                const tbody = document.getElementById('results-table-body');
+
+                // 1. Calculate Total Votes first (for percentage math)
+                const totalVotes = data.reduce((sum, c) => sum + (c.vote_count || 0), 0);
+
+                // 2. Filter and Sort
+                const filteredData = data
+                    .filter(c =>
+                        (c.name || '').toLowerCase().includes(searchTerm) ||
+                        String(c.candidate_id).toLowerCase().includes(searchTerm)
+                    )
+                    .sort((a, b) => b.vote_count - a.vote_count);
+
+                tbody.innerHTML = '';
+
+                if (filteredData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:2rem; color:gray;">No candidates found</td></tr>';
+                    return;
+                }
+
+                // 3. Build the rows
+                let htmlRows = '';
+                filteredData.forEach((c, index) => {
+                    const rank = index + 1;
+                    const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+
+                    // Calculate percentage (handle divide by zero)
+                    const percent = totalVotes > 0 ? ((c.vote_count / totalVotes) * 100).toFixed(1) : 0;
+
+                    const isMe = c.candidate_id == myCandidateID ? 'style="background-color: #f0f9ff; border-left: 4px solid var(--navy-primary);"' : '';
+
+                    htmlRows += `
+                <tr ${isMe} style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="font-weight: bold; padding: 12px 10px;">${rankDisplay}</td>
+                    <td style="padding: 12px 10px;">
+                        <div style="display:flex; flex-direction:column; gap: 4px;">
+                            <div style="display:flex; align-items:center; gap: 10px;">
+                                <span style="font-weight: 600;">${c.name || 'Unnamed Candidate'}</span>
+                                <span style="color: #6B7280; font-size: 0.8rem;">(ID: ${c.candidate_id})</span>
+                                ${c.candidate_id == myCandidateID ? '<span class="badge" style="background:var(--navy-primary); color:white; font-size:10px; padding:2px 6px; border-radius:4px;">YOU</span>' : ''}
+                            </div>
+                            <div style="width: 100%; background: #E5E7EB; height: 6px; border-radius: 3px; margin-top: 4px;">
+                                <div style="width: ${percent}%; background: var(--success); height: 100%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: right; padding: 12px 10px;">
+                        <span style="display: block; font-weight: 700; color: #059669;">${(c.vote_count || 0).toLocaleString()}</span>
+                        <small style="color: #6B7280;">${percent}%</small>
+                    </td>
+                </tr>
+            `;
+                });
+
+                tbody.innerHTML = htmlRows;
+
+            } catch (err) {
+                console.error("Fetch Results Error:", err);
+                document.getElementById('results-table-body').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error loading results</td></tr>';
+            }
+        }
+
+
+
+        // call initial functions
+        loadDashboardStats();
+        loadCandidateDirectory();
+        Auth.checkLogin();
+        updateGlobalStatus();
+        checkUserVoted();
+        fetchLiveResults();
+    </script>
 </body>
+
 </html>
