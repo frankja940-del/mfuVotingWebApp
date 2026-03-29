@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 26, 2026 at 05:51 AM
+-- Generation Time: Mar 29, 2026 at 03:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -62,10 +62,12 @@ CREATE TABLE `candidate` (
 --
 
 INSERT INTO `candidate` (`candidate_id`, `password`, `name`, `policy`, `is_enabled`, `created_at`, `img`) VALUES
-(1, 'pass123', 'John Smith', 'Better Campus, Better Life', 1, '2026-03-26 10:39:34', 'john.jpg'),
-(2, 'hashed_pass_1', 'John Smith', 'Digital Transformation for Campus Life', 1, '2026-03-26 10:32:44', 'john.jpg'),
-(3, 'hashed_pass_2', 'Emily Watson', 'Green University & Zero Waste Initiative', 1, '2026-03-26 10:32:44', 'emily.jpg'),
-(4, 'hashed_pass_3', 'Michael Chen', '24/7 Library Access & Mental Health Support', 1, '2026-03-26 10:32:44', 'michael.jpg');
+(1, '$2b$10$MecVfnpjisYUjrehU3OrDuLkYwrWbR2097Spj2p1PEQkuoui6gVNe', 'lemondogs', 'better Campus/better major/better if u choose another major', 1, '2026-03-26 10:39:34', 'http://localhost:3000/uploads/cand-1774651530438-736130043.png'),
+(2, '$2b$10$GhY4Yym9t1gQuom5jZtAOOq9Os4c5alI9XLL5TSvUmYEFjxH0IPIS', 'John Smith', 'Digital Transformation for Campus Life', 1, '2026-03-26 10:32:44', 'john.jpg'),
+(3, '$2b$10$/jr1eAOCHHk1newE9r9VDOsvQ8PW/6KjH5FXsVAjSCbv8U3VCPTcu', 'Emily Watson', 'Green University & Zero Waste Initiative', 1, '2026-03-26 10:32:44', 'emily.jpg'),
+(4, '$2b$10$wcG9iHUf3.s/LxUGk9oKv.2TfRL6nSzsuuquPBYXfGlUDHVnWhfe6', 'Michael Chen', '24/7 Library Access & Mental Health Support', 1, '2026-03-26 10:32:44', 'michael.jpg'),
+(5, '$2b$10$GYThF4YzTrxE5vPs63.5eeUsAqjCSF0dJW0fNEKe.zB0rNlysSLwW', '', NULL, 1, '2026-03-28 04:12:22', ''),
+(6, '$2b$10$Yjnx0nfu1ryAgvLfjLY4aOv6eWYhnLl16MiZSgBsZLH2eDXKch1Ai', '', NULL, 1, '2026-03-28 04:13:48', '');
 
 -- --------------------------------------------------------
 
@@ -85,7 +87,7 @@ CREATE TABLE `election_settings` (
 --
 
 INSERT INTO `election_settings` (`election_settings_id`, `voting_enabled`, `created_at`, `updated_at`) VALUES
-(1, 1, '2026-03-26 11:04:11', '2026-03-26 11:04:11');
+(1, 0, '2026-03-26 11:04:11', '2026-03-28 15:26:06');
 
 -- --------------------------------------------------------
 
@@ -168,6 +170,7 @@ ALTER TABLE `election_settings`
 ALTER TABLE `vote`
   ADD PRIMARY KEY (`vote_id`),
   ADD UNIQUE KEY `voter_id` (`voter_id`),
+  ADD UNIQUE KEY `voter_id_2` (`voter_id`),
   ADD KEY `candidate_id` (`candidate_id`);
 
 --
@@ -191,7 +194,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `candidate`
 --
 ALTER TABLE `candidate`
-  MODIFY `candidate_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `candidate_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `election_settings`
@@ -209,7 +212,7 @@ ALTER TABLE `vote`
 -- AUTO_INCREMENT for table `voter`
 --
 ALTER TABLE `voter`
-  MODIFY `voter_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `voter_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
