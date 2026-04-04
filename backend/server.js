@@ -20,8 +20,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
-    database: 'votingappdemo'
+    password: 'root', // ဒီနေရာမှာ စာလုံးအလွတ် "" မဟုတ်ဘဲ "root" ဖြစ်နေရပါမယ်
+    database: 'votingappdemo',
+    port: 8889 // (အရေးကြီး) MAMP ရဲ့ MySQL port ကို 8889 ပြောင်းထားရင် ဒါကို မဖြစ်မနေ ထည့်ပေးရပါမယ်
 });
 
 db.connect(err => {
@@ -99,9 +100,12 @@ app.post('/admin/add-voter', (req, res) => {
 });
 
 // Register New Candidate Placeholder
+// Register New Candidate Placeholder
 app.post('/admin/add-candidate', (req, res) => {
     const { candidate_id } = req.body;
-    const sql = "INSERT INTO candidate (candidate_id, is_enabled) VALUES (?, 0)";
+    
+    // FIX: We pass empty strings ('') for password, name, and img to satisfy the database rules
+    const sql = "INSERT INTO candidate (candidate_id, password, name, img, is_enabled) VALUES (?, '', '', '', 0)";
 
     db.query(sql, [candidate_id], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
