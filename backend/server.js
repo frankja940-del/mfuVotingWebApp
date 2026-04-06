@@ -20,8 +20,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
-    database: 'votingappdemo'
+    password: '', // pass of mysql user
+    database: 'votingappdemo',
+    port: 3306 // MySQL default port
 });
 
 db.connect(err => {
@@ -67,10 +68,13 @@ app.post('/admin/login', (req, res) => {
 // Admin Dashboard Stats
 app.get('/admin/stats', async (req, res) => {
     try {
-        // ใช้ promise() เพื่อให้โค้ดอ่านง่ายและไม่ซ้อนกันเยอะ
         const [voters] = await db.promise().query("SELECT COUNT(*) AS total FROM voter");
         const [cands] = await db.promise().query("SELECT COUNT(*) AS total FROM candidate");
         const [votes] = await db.promise().query("SELECT COUNT(*) AS total FROM vote");
+
+        const [lastCand] = await db.promise().query("SELECT candidate_id FROM candidate ORDER BY candidate_id DESC LIMIT 1");
+        
+        const latestId = lastCand.length > 0 ? lastCand[0].candidate_id : 'None';
 
         const totalVoters = voters[0].total;
         const totalVotes = votes[0].total;
@@ -80,9 +84,11 @@ app.get('/admin/stats', async (req, res) => {
             voters: totalVoters,
             candidates: cands[0].total,
             votes: totalVotes,
-            turnout: percent
+            turnout: percent,
+            lastCandidateId: latestId 
         });
     } catch (err) {
+        console.error("Stats Error:", err); // เพิ่ม log ไว้ดู Error ใน Terminal จะได้แก้บั๊กง่ายขึ้น
         res.status(500).json({ message: "Error fetching stats" });
     }
 });
@@ -101,7 +107,9 @@ app.post('/admin/add-voter', (req, res) => {
 // Register New Candidate Placeholder
 app.post('/admin/add-candidate', (req, res) => {
     const { candidate_id } = req.body;
-    const sql = "INSERT INTO candidate (candidate_id, is_enabled) VALUES (?, 0)";
+    
+    // FIX: We pass empty strings ('') for password, name, and img to satisfy the database rules
+    const sql = "INSERT INTO candidate (candidate_id, password, name, img, is_enabled) VALUES (?, '', '', '', 0)";
 
     db.query(sql, [candidate_id], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
