@@ -166,10 +166,14 @@
                         card.className = 'card';
                         card.innerHTML = `
                     <div style="text-align: center; flex-direction: column; display: flex; align-items: center;">
-                        <img src="${cand.img || 'default-avatar.png'}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
+                        <img src="${cand.img || 'https://www.w3schools.com/howto/img_avatar.png'}" 
+                        onerror="this.src='https://www.w3schools.com/howto/img_avatar.png'"
+                        style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem;">
                         <h3>${cand.name || 'Unnamed Candidate'}</h3>
                         <p style="color: var(--text-muted); font-size: 0.9rem;">ID: ${cand.candidate_id}</p>
-                        <p style="margin: 1rem 0; min-height: 40px;">${cand.policy || 'No policy stated.'}</p>
+                        <div style="margin: 1rem 0; height: 120px; width: 100%; overflow-y: auto; text-align: left; background: #F9FAFB; padding: 10px; border-radius: 8px; border: 1px solid #E5E7EB; box-sizing: border-box; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap;">
+    ${cand.policy || '<i style="color:gray;">No policy stated.</i>'}
+</div>
                         <button onclick="openVoteModal('${cand.candidate_id}', '${cand.name}')" style="width: 100%;">Vote for Candidate</button>
                     </div>
                 `;

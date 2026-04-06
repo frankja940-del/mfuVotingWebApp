@@ -38,8 +38,9 @@
 
         <div class="tabs" style="margin-top: 2rem;">
             <button class="tab-btn active" onclick="switchAdminTab('system')">System & Registration</button>
-            <button class="tab-btn" onclick="switchAdminTab('voters')">Voter Access Control</button>
-            <button class="tab-btn" onclick="switchAdminTab('candidates')">Candidate Access Control</button>
+            <button class="tab-btn" onclick="switchAdminTab('voters')">Voter Access</button>
+            <button class="tab-btn" onclick="switchAdminTab('candidates')">Candidate Access</button>
+            <button class="tab-btn" onclick="switchAdminTab('directory')">Candidate Profiles</button>
             <button class="tab-btn" onclick="switchAdminTab('results')">Live Results</button>
         </div>
 
@@ -91,51 +92,66 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="tab-voters" class="tab-content">
-        <div class="card">
-            <h2>Voter Access Control</h2>
-            <input type="text" id="search-voter" placeholder="Search Citizen ID..."
-                oninput="AdminService.renderVoterTable()">
-            <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
-                <table id="admin-user-table" class="admin-table"></table>
+        <div id="tab-voters" class="tab-content">
+            <div class="card">
+                <h2>Voter Access Control</h2>
+                <input type="text" id="search-voter" placeholder="Search Citizen ID..."
+                    oninput="AdminService.renderVoterTable()">
+                <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
+                    <table id="admin-user-table" class="admin-table"></table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="tab-candidates" class="tab-content">
-        <div class="card">
-            <h2>Candidate Access Control</h2>
-            <input type="text" id="search-cand" placeholder="Search Candidate..."
-                onkeyup="AdminService.renderCandidateTable()">
-            <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
-                <table id="admin-cand-table" class="admin-table"></table>
+        <div id="tab-candidates" class="tab-content">
+            <div class="card">
+                <h2>Candidate Access Control</h2>
+                <input type="text" id="search-cand" placeholder="Search Candidate..."
+                    onkeyup="AdminService.renderCandidateTable()">
+                <div style="max-height: 500px; overflow-y: auto; margin-top: 1rem;">
+                    <table id="admin-cand-table" class="admin-table"></table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="tab-results" class="tab-content">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2>Live Election Standings</h2>
-                <input type="text" id="results-search" placeholder="Search Candidate..."
-                    oninput="AdminService.fetchLiveResults()"
-                    style="width: 250px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        <div id="tab-directory" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Candidate Profiles & Policies</h2>
+                    <input type="text" id="search-directory" placeholder="Search ID or Name..."
+                        oninput="AdminService.renderDirectory()"
+                        style="width: 250px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 0;">
+                </div>
+
+                <div id="admin-candidate-directory" class="stats-grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                </div>
             </div>
+        </div>
 
-            <div style="max-height: 600px; overflow-y: auto;">
-                <table class="admin-table">
-                    <thead>
-                        <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
-                            <th style="width: 80px;">Rank</th>
-                            <th>Candidate Name</th>
-                            <th style="text-align: right; width: 150px;">Total Votes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-table-body">
-                    </tbody>
-                </table>
+        <div id="tab-results" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Live Election Standings</h2>
+                    <input type="text" id="results-search" placeholder="Search Candidate..."
+                        oninput="AdminService.fetchLiveResults()"
+                        style="width: 250px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 0;">
+                </div>
+
+                <div style="max-height: 600px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                                <th style="width: 80px;">Rank</th>
+                                <th>Candidate Name</th>
+                                <th style="text-align: right; width: 150px;">Total Votes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -159,7 +175,6 @@
     </div>
 
     <script>
-
         // --- 1. LOGIN SECURITY CHECK ---
         const isLoggedIn = localStorage.getItem('isLoggedIn') || sessionStorage.getItem('isLoggedIn');
         if (!isLoggedIn) {
@@ -167,16 +182,9 @@
             window.location.replace('admin-login.html');
         }
 
-        function endSession() {
-            localStorage.clear();
-            sessionStorage.clear();
-            location.replace('admin-login.html');
-        }
-
         const AdminService = {
             allVoters: [],
             allCandidates: [],
-
 
             async loadDashboard() {
                 try {
@@ -232,6 +240,7 @@
                     const res = await fetch('http://localhost:3000/admin/candidates');
                     this.allCandidates = await res.json();
                     this.renderCandidateTable();
+                    this.renderDirectory(); // 🌟 Tab အသစ်အတွက် Data ပါ တစ်ခါတည်း Render လုပ်ပါမယ်
                 } catch (err) { console.error("Fetch Candidates Error:", err); }
             },
 
@@ -239,7 +248,6 @@
                 const query = document.getElementById('search-cand').value.toLowerCase();
                 const table = document.getElementById('admin-cand-table');
 
-                // กรองข้อมูลตามช่อง Search
                 const filtered = this.allCandidates.filter(c =>
                     (c.candidate_id || '').toString().includes(query) ||
                     (c.name && c.name.toLowerCase().includes(query))
@@ -263,6 +271,74 @@
                 table.innerHTML = html + (filtered.length === 0 ? '<tr><td colspan="4">No candidates found</td></tr>' : '') + `</tbody>`;
             },
 
+            // 🌟 Function အသစ် - Candidate Profiles ကို Card ပုံစံဖြင့် ပြသခြင်း
+            // 🌟 ဤ Function တစ်ခုလုံးကို အစားထိုးပါ 🌟
+            renderDirectory() {
+                const query = document.getElementById('search-directory')?.value.toLowerCase() || '';
+                const container = document.getElementById('admin-candidate-directory');
+                if (!container) return;
+
+                const filtered = this.allCandidates.filter(c =>
+                    (c.candidate_id || '').toString().includes(query) ||
+                    (c.name && c.name.toLowerCase().includes(query))
+                );
+
+                let html = '';
+                filtered.forEach(c => {
+                    const isActive = c.is_enabled == 1;
+                    const statusColor = isActive ? 'var(--success)' : 'var(--red-important)';
+                    html += `
+                <div class="card" style="border-top: 4px solid ${statusColor}; padding: 1.5rem; border-radius: 12px;">
+                    <div style="text-align: center; flex-direction: column; display: flex; align-items: center;">
+        
+                                    <img src="${c.img || 'https://www.w3schools.com/howto/img_avatar.png'}" 
+                                         onerror="this.src='https://www.w3schools.com/howto/img_avatar.png'"
+                                         style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 3px solid ${statusColor};">
+                                    
+                                    <h3 style="color: var(--color-oxford-blue); margin-bottom: 0; font-weight: 700;">${c.name || 'Unnamed Candidate'}</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">ID: ${c.candidate_id}</p>
+                                    
+                                    <span style="background: ${isActive ? '#DCFCE7' : '#FEE2E2'}; color: ${isActive ? '#166534' : '#991B1B'}; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-bottom: 1.5rem;">
+                                       ${isActive ? '● Active' : '○ Disabled'}
+                                    </span>
+                            
+                        <div style="width: 100%; text-align: left;">
+                                        <strong style="font-size: 0.85rem; color: var(--color-oxford-blue); display: block; margin-bottom: 8px;">
+                                            Campaign Policy:
+                                        </strong>
+                                        
+                            <div style="
+                                height: 120px; 
+                                background: #F9FAFB; 
+                                border-radius: 8px; 
+                                border: 1px solid var(--border-light);
+                                overflow-y: auto;                                      
+                                display: flex;             
+                                flex-direction: row;    
+                            ">
+                                <div style="
+                                    margin: auto;         
+                                    padding: 15px; 
+                                    width: 100%;
+                                    font-size: 0.9rem; 
+                                    color: var(--text-main); 
+                                    white-space: pre-line; 
+                                    text-align: center;
+                                    line-height: 1.5;
+                                ">
+                                    ${c.policy && c.policy.trim() !== "" ? c.policy.trim() : '<i style="color:#A0AEC0;">No policy provided yet.</i>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                });
+
+                container.innerHTML = html || '<p style="text-align:center; width:100%; color:gray; margin-top: 2rem;">No candidates found.</p>';
+            },
+
+
+
             async toggleCandidate(id, currentStatus) {
                 try {
                     const res = await fetch('http://localhost:3000/admin/candidate/toggle-status', {
@@ -274,9 +350,6 @@
                 } catch (err) { console.error(err); }
             },
 
-            // 4. Live Results Chart
-            // แก้ไขฟังก์ชัน fetchLiveResults ภายในตัวแปร AdminService:
-
             async fetchLiveResults() {
                 try {
                     const res = await fetch('http://localhost:3000/admin/results');
@@ -286,12 +359,10 @@
                     const searchTerm = document.getElementById('results-search').value.toLowerCase();
                     const tbody = document.getElementById('results-table-body');
 
-                    // 1. กรองข้อมูลและเรียงลำดับคะแนน (มากไปน้อย)
                     const filteredData = data
                         .filter(c => (c.name || '').toLowerCase().includes(searchTerm))
                         .sort((a, b) => b.vote_count - a.vote_count);
 
-                    // 2. ล้างตารางเดิม
                     tbody.innerHTML = '';
 
                     if (filteredData.length === 0) {
@@ -299,12 +370,9 @@
                         return;
                     }
 
-                    // 3. สร้าง HTML แถวตาราง
                     let htmlRows = '';
                     filteredData.forEach((c, index) => {
                         const rank = index + 1;
-
-                        // ตกแต่งลำดับ 1, 2, 3 ด้วยอีโมจิ
                         const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
 
                         htmlRows += `
@@ -331,8 +399,6 @@
                 }
             },
 
-
-            // global system toggle
             async toggleSystem() {
                 try {
                     const res = await fetch('http://localhost:3000/admin/toggle-system', {
@@ -372,9 +438,9 @@
         setInterval(() => {
             const resultsTab = document.getElementById('tab-results');
             if (resultsTab && resultsTab.classList.contains('active')) {
-                fetchLiveResults();
+                AdminService.fetchLiveResults();
             }
-        }, 30);
+        }, 3000); // Changed from 30ms to 3000ms to prevent browser lag
 
         // --- UI Helper Functions ---
         function switchAdminTab(name) {
@@ -384,7 +450,8 @@
             event.currentTarget.classList.add('active');
 
             if (name === 'voters') AdminService.fetchVoters();
-            if (name === 'candidates') AdminService.fetchCandidates();
+            // 🌟 candidates နဲ့ directory tab နှစ်ခုလုံးအတွက် Data လှမ်းဆွဲပေးပါမယ်
+            if (name === 'candidates' || name === 'directory') AdminService.fetchCandidates();
             if (name === 'results') AdminService.fetchLiveResults();
         }
 
