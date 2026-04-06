@@ -105,6 +105,7 @@ app.post('/admin/add-voter', (req, res) => {
 });
 
 // Register New Candidate Placeholder
+// Register New Candidate Placeholder
 app.post('/admin/add-candidate', (req, res) => {
     const { candidate_id } = req.body;
     
