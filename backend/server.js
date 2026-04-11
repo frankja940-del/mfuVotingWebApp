@@ -20,9 +20,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '', // pass of mysql user
+    password: 'root', // pass of mysql user
     database: 'votingappdemo',
-    port: 3306 // MySQL default port
+    port: 8889 // MySQL default port
 });
 
 db.connect(err => {
